@@ -16,16 +16,17 @@
 
   <dependencies>
     <dependency>
-        <groupId>com.google.android</groupId>
-        <artifactId>android</artifactId>
-        <version>4.1.1.4</version>
-        <scope>probvided</scope>
+      <groupId>com.google.android</groupId>
+      <artifactId>android</artifactId>
+      <version>4.1.1.4</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
-        <groupId>com.evernote</groupId>
-        <artifactId>android-sdk</artifactId>
-        <version>1.0.1</version>
-        <type>apklib</type>
+      <groupId>com.evernote</groupId>
+      <artifactId>android-sdk</artifactId>
+      <version>1.0.1</version>
+      <scope>system</scope>
+      <systemPath>${basedir}/lib/android-sdk-1.0.jar</systemPath>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
