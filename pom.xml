@@ -26,7 +26,7 @@
       <artifactId>android-sdk</artifactId>
       <version>1.0.1</version>
       <scope>system</scope>
-      <systemPath>${basedir}/lib/android-sdk-1.0.jar</systemPath>
+      <systemPath>${basedir}/lib/android-sdk-1.0.1.jar</systemPath>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
