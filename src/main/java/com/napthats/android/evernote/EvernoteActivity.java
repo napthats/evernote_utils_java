@@ -4,6 +4,8 @@ import java.io.File;
 
 import android.app.Activity;
 import android.os.Environment;
+import android.content.Context;
+import android.content.Intent;
 
 import com.evernote.client.oauth.android.EvernoteSession;
 
@@ -46,4 +48,47 @@ public class EvernoteActivity extends Activity
     session = EvernoteSession.init((android.content.Context)this, c_key, c_secret, evernote_host, temp_file);
   }
 
+
+  /**
+   * Authenticate Evernote and set callback after authentication.
+   *
+   * @param succeeded Callback after succeeding authentication.
+   * @param failed Callback after failing authentication.
+   */
+  protected final void authenticate(CallBack succeeded, CallBack failed)
+    throws NotInitializedException {
+      checkInitialized();
+      succeededCallbackAfterAuthentication = succeeded;
+      failedCallbackAfterAuthentication = failed;
+      session.authenticate(this);
+  }
+    
+  private CallBack succeededCallbackAfterAuthentication = null;
+  private CallBack failedCallbackAfterAuthentication = null;
+
+  protected interface CallBack {
+    public void call();
+  }
+
+  @Override
+  public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
+    if (session == null) {return;}
+    if (requestCode == EvernoteSession.REQUEST_CODE_OAUTH) {
+        if (resultCode == Activity.RESULT_OK) {
+          succeededCallbackAfterAuthentication.call();
+        }
+        else
+        {
+          failedCallbackAfterAuthentication.call();
+        }
+    }
+  }
+
+
+  private void checkInitialized() throws NotInitializedException {
+    if (session == null) {throw new NotInitializedException();}
+  }
+
+  public class NotInitializedException extends Exception {}
 }
