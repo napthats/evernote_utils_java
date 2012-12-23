@@ -55,8 +55,7 @@ public class EvernoteActivity extends Activity
    * @param succeeded Callback after succeeding authentication.
    * @param failed Callback after failing authentication.
    */
-  protected final void authenticate(CallBack succeeded, CallBack failed)
-    throws NotInitializedException {
+  protected final void authenticate(CallBack succeeded, CallBack failed) {
       checkInitialized();
       succeededCallbackAfterAuthentication = succeeded;
       failedCallbackAfterAuthentication = failed;
@@ -86,9 +85,9 @@ public class EvernoteActivity extends Activity
   }
 
 
-  private void checkInitialized() throws NotInitializedException {
+  private void checkInitialized() {
     if (session == null) {throw new NotInitializedException();}
   }
 
-  public class NotInitializedException extends Exception {}
+  public class NotInitializedException extends RuntimeException {}
 }
