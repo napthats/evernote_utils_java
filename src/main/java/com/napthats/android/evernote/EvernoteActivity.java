@@ -74,6 +74,8 @@ public class EvernoteActivity extends Activity
     super.onActivityResult(requestCode, resultCode, data);
     if (session == null) {return;}
     if (requestCode == EvernoteSession.REQUEST_CODE_OAUTH) {
+        assert succeededCallbackAfterAuthentication != null;
+        assert failedCallbackAfterAuthentication != null;
         if (resultCode == Activity.RESULT_OK) {
           succeededCallbackAfterAuthentication.call();
         }
