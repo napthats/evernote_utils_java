@@ -50,7 +50,7 @@ public class EvernoteActivity extends Activity
 
 
   /**
-   * Authenticate Evernote and set callback after authentication.
+   * Authenticate Evernote and set callback following authentication.
    *
    * @param succeeded Callback after succeeding authentication.
    * @param failed Callback after failing authentication.
