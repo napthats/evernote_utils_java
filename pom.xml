@@ -29,6 +29,11 @@
       <systemPath>${basedir}/lib/android-sdk-1.0.1.jar</systemPath>
     </dependency>
     <dependency>
+      <groupId>com.evernote</groupId>
+      <artifactId>evernote-api</artifactId>
+      <version>1.23</version>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>3.8.1</version>
