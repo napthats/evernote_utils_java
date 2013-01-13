@@ -46,15 +46,9 @@ public class EvernoteActivity extends Activity
 
 
   /**
-   * Initialize settings of Evernote.
-   * This method have to be called before all other methods.
-   *
-   * @param c_key The consumer key.
-   * @param c_secret The consumer secret.
-   * @param evernote_host (optional) The hostname for the Evernote. "www.evernote.com" is used
-   * for default. This cannot be omitted if temp_dir_name is provided.
-   * @param temp_dir_name (optional) The data directory to store evernote files. Evernote sdk's
-   * default setting is used for default. This cannot be provided if evernote_host is ommited.
+   * Get a NoteStore proxy.
+   * It has same methods from the original NoteStore, which methods don't throw Exceptions.
+   * Additionally, callback version methods is provided. They are executed in AsyncTask.
    */
   protected final NoteStoreProxy createNoteStore() throws TTransportException {
     checkInitialized();
