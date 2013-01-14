@@ -24,6 +24,7 @@ import com.evernote.client.oauth.android.EvernoteSession;
 import com.evernote.thrift.transport.TTransportException;
 
 
+
 public class EvernoteActivity extends Activity
 {
   private final String EVERNOTE_HOST = "www.evernote.com";
@@ -31,9 +32,8 @@ public class EvernoteActivity extends Activity
   private EvernoteSession session = null;
 
 
-
   /**
-   * Some utilities related to notes.
+   * Some utilities related to notes with attributes.
    */
   protected static class Util {
     private static final String NOTE_PREFIX =
@@ -71,7 +71,7 @@ public class EvernoteActivity extends Activity
       String old_content = note.getContent();
       Pattern pattern = Pattern.compile(ATTR_REGEX);
       Matcher matcher = pattern.matcher(old_content == null ? "" : old_content);
-      String note_attr = matcher.find() ? matcher.group(1) : "";
+      String note_attr = matcher.find() ? matcher.group() : "";
       note.setContent(
         NOTE_PREFIX
         + LINE_PREFIX
