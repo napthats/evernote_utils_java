@@ -3,6 +3,8 @@ package com.napthats.android.evernote;
 import java.io.File;
 import java.util.List;
 
+import java.util.regex.*;
+
 import java.lang.reflect.Proxy;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -17,11 +19,9 @@ import android.os.AsyncTask;
 import com.evernote.edam.type.*;
 import com.evernote.edam.notestore.*;
 import com.evernote.edam.userstore.*;
+import com.evernote.edam.error.*;
 import com.evernote.client.oauth.android.EvernoteSession;
 import com.evernote.thrift.transport.TTransportException;
-import com.evernote.edam.error.EDAMNotFoundException;
-import com.evernote.edam.error.EDAMSystemException ;
-import com.evernote.edam.error.EDAMUserException;
 
 
 public class EvernoteActivity extends Activity
@@ -35,16 +35,69 @@ public class EvernoteActivity extends Activity
   /**
    * Delegation methods.
    */
-  public final String getAuthToken() {
+  protected final String getAuthToken() {
     checkInitialized();
     return session.getAuthToken();
   }
+
   protected final boolean isLoggedIn() {
     checkInitialized();
     return session.isLoggedIn();
   }
 
 
+  /**
+   * Some utilities related to notes.
+   */
+  protected static class Util {
+    private static final String NOTE_PREFIX =
+      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+          "<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">" +
+              "<en-note>";
+    private static final String NOTE_SUFFIX = "</en-note>";
+    private static final String LINE_PREFIX = "<div>";
+    private static final String LINE_SUFFIX = "</div>";
+    private static final String ATTR_REGEX = "<span style=\"EvernoteActivity,.*?\"></span>";
+
+
+    /**
+     * Get a plain content from a note.
+     * It removes all tags/attributes and adds newlines corresponded to div tags.
+     *
+     * @param note a taget note
+     * @return a result string
+     */
+    public static final String getPlainContent(Note note) {
+      return note.getContent()
+                 .replaceAll(ATTR_REGEX, "")
+                 .replaceAll(LINE_SUFFIX, "\n")
+                 .replaceAll("<.*?>", "");
+    }
+
+    /** 
+     * Set a plain content to a note.
+     * It retains attributes in the note.
+     * 
+     * @param note a target note
+     * @param plain_content a target plain content
+     */
+    public static final void setPlainContent(Note note, String plain_content) {
+      String old_content = note.getContent();
+      Pattern pattern = Pattern.compile(ATTR_REGEX);
+      Matcher matcher = pattern.matcher(old_content == null ? "" : old_content);
+      String note_attr = matcher.find() ? matcher.group(1) : "";
+      note.setContent(
+        NOTE_PREFIX
+        + LINE_PREFIX
+        + plain_content.replaceAll("\n", LINE_SUFFIX + LINE_PREFIX)
+        + LINE_SUFFIX
+        + note_attr
+        + NOTE_SUFFIX
+      );
+    }
+  }
+
+ 
   /**
    * Get a NoteStore proxy.
    * It has same methods from the original NoteStore, which methods don't throw Exceptions.
