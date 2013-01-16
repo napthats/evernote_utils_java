@@ -2,6 +2,8 @@ package com.napthats.android.evernote;
 
 import java.io.File;
 import java.util.List;
+import java.util.Hashtable;
+import java.util.Map;
 
 import java.util.regex.*;
 
@@ -15,6 +17,7 @@ import android.os.Environment;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.evernote.edam.type.*;
 import com.evernote.edam.notestore.*;
@@ -43,44 +46,131 @@ public class EvernoteActivity extends Activity
     private static final String NOTE_SUFFIX = "</en-note>";
     private static final String LINE_PREFIX = "<div>";
     private static final String LINE_SUFFIX = "</div>";
-    private static final String ATTR_REGEX = "<span style=\"EvernoteActivity,.*?\"></span>";
+    private static final String ATTR_PREFIX = "<span style=\"display:none;\"><div>EvernoteActivity</div><div>";
+    private static final String ATTR_SUFFIX = "</div></span>";
+    private static final String ATTR_SPLITTER = "</div><div>";
 
 
     /**
      * Get a plain content from a note.
-     * It removes all tags/attributes and adds newlines corresponded to div tags.
+     * Remove all tags/attributes and adds newlines corresponded to div tags.
      *
      * @param note a taget note
      * @return a result string
      */
     public static final String getPlainContent(Note note) {
+      if (note.getContent() == null) {
+        return "";
+      }
       return note.getContent()
-                 .replaceAll(ATTR_REGEX, "")
+                 .replaceAll(ATTR_PREFIX + ".*" + ATTR_SUFFIX, "")
                  .replaceAll(LINE_SUFFIX, "\n")
                  .replaceAll("<.*?>", "");
     }
 
     /** 
      * Set a plain content to a note.
-     * It retains attributes in the note.
+     * Retain attributes in the note.
      * 
      * @param note a target note
      * @param plain_content a target plain content
      */
     public static final void setPlainContent(Note note, String plain_content) {
-      String old_content = note.getContent();
-      Pattern pattern = Pattern.compile(ATTR_REGEX);
-      Matcher matcher = pattern.matcher(old_content == null ? "" : old_content);
-      String note_attr = matcher.find() ? matcher.group() : "";
+      if (note.getContent() == null) {
+        note.setContent("");
+      }
+      String note_attr = getAttributeString(note);
       note.setContent(
         NOTE_PREFIX
         + LINE_PREFIX
         + plain_content.replaceAll("\n", LINE_SUFFIX + LINE_PREFIX)
         + LINE_SUFFIX
-        + note_attr
+        + (note_attr == null ? "" : ATTR_PREFIX + note_attr + ATTR_SUFFIX)
         + NOTE_SUFFIX
       );
     }
+
+    /**
+     * Get an attribute value with a key String.
+     * Return null if there is no attribute with the key.
+     *
+     * @param note a target note
+     * @param key an attribute key
+     * @return an attribute value
+     */
+    public static final String getAttribute(Note note, String key) {
+      if (note.getContent() == null) {
+        return null;
+      }
+      Map<String, String> attr_map = getAllAttributes(note);
+      return attr_map.get(key);
+    }
+
+    /**
+     * Get a attribute map.
+     *
+     * @param note a target note
+     * @return an attribute array
+     */
+    public static final Map<String, String> getAllAttributes(Note note) {
+      if (note.getContent() == null) {
+        return new Hashtable<String, String>();
+      }
+      String attr_string = getAttributeString(note);
+      Hashtable<String, String> attr_table = new Hashtable<String, String>();
+      if (attr_string == null) {
+        return attr_table;
+      }
+      String[] attr_array = attr_string.split(ATTR_SPLITTER, -1);
+      assert attr_array.length % 2 == 0;
+      for (int i = 0; i < attr_array.length; i += 2) {
+        attr_table.put(attr_array[i], attr_array[i+1]);
+      }
+      return attr_table;
+    }
+
+    /**
+     * Set an attribute.
+     *
+     * @param note a target note
+     * @param key an attribute key
+     * @param value an attribute value
+     */
+    public static final void setAttribute(Note note, String key, String value) {
+      String old_content = note.getContent();
+      if (old_content == null) {
+        setPlainContent(note, "");
+        old_content = "";
+      }
+      String plain_content = getPlainContent(note);
+      Map<String, String> attr_map = getAllAttributes(note);
+      attr_map.put(key, value);
+      StringBuffer attr_string_buf = new StringBuffer();
+      for (String tmp_key : attr_map.keySet().toArray(new String[0])) {
+        if (attr_string_buf.length() > 0) {
+          attr_string_buf.append(ATTR_SPLITTER);
+        }
+        attr_string_buf.append(tmp_key);
+        attr_string_buf.append(ATTR_SPLITTER);
+        attr_string_buf.append(attr_map.get(tmp_key));
+      }
+     
+      note.setContent(
+        NOTE_PREFIX
+        + LINE_PREFIX
+        + plain_content.replaceAll("\n", LINE_SUFFIX + LINE_PREFIX)
+        + LINE_SUFFIX
+        + (attr_string_buf.length() == 0 ? "" : ATTR_PREFIX + attr_string_buf.toString() + ATTR_SUFFIX)
+        + NOTE_SUFFIX
+      );
+    }
+    
+    private static final String getAttributeString(Note note) {
+      String content = note.getContent();
+      Pattern pattern = Pattern.compile(ATTR_PREFIX + "(.*)" + ATTR_SUFFIX);
+      Matcher matcher = pattern.matcher(content);
+      return matcher.find() ? matcher.group(1) : null;
+    } 
   }
 
  
