@@ -26,6 +26,7 @@ import com.evernote.edam.error.*;
 import com.evernote.client.oauth.android.EvernoteSession;
 import com.evernote.thrift.transport.TTransportException;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 
 
 public class EvernoteActivity extends Activity
@@ -46,8 +47,8 @@ public class EvernoteActivity extends Activity
     private static final String NOTE_SUFFIX = "</en-note>";
     private static final String LINE_PREFIX = "<div>";
     private static final String LINE_SUFFIX = "</div>";
-    private static final String ATTR_PREFIX = "<span style=\"display:none;\"><div>EvernoteActivity</div><div>";
-    private static final String ATTR_SUFFIX = "</div></span>";
+    private static final String ATTR_PREFIX = "<div>:</div><div>EvernoteActivity</div><div>";
+    private static final String ATTR_SUFFIX = "</div><div>:</div>";
     private static final String ATTR_SPLITTER = "</div><div>";
 
 
@@ -62,10 +63,11 @@ public class EvernoteActivity extends Activity
       if (note.getContent() == null) {
         return "";
       }
-      return note.getContent()
+      return StringEscapeUtils.unescapeHtml4(
+               note.getContent()
                  .replaceAll(ATTR_PREFIX + ".*" + ATTR_SUFFIX, "")
                  .replaceAll(LINE_SUFFIX, "\n")
-                 .replaceAll("<.*?>", "");
+                 .replaceAll("<.*?>", ""));
     }
 
     /** 
@@ -75,7 +77,8 @@ public class EvernoteActivity extends Activity
      * @param note a target note
      * @param plain_content a target plain content
      */
-    public static final void setPlainContent(Note note, String plain_content) {
+    public static final void setPlainContent(Note note, String _plain_content) {
+      String plain_content = StringEscapeUtils.escapeHtml4(_plain_content);
       if (note.getContent() == null) {
         note.setContent("");
       }
@@ -103,6 +106,9 @@ public class EvernoteActivity extends Activity
         return null;
       }
       Map<String, String> attr_map = getAllAttributes(note);
+      if (attr_map.get(key) == null) {
+        return null;
+      }
       return attr_map.get(key);
     }
 
@@ -124,7 +130,7 @@ public class EvernoteActivity extends Activity
       String[] attr_array = attr_string.split(ATTR_SPLITTER, -1);
       assert attr_array.length % 2 == 0;
       for (int i = 0; i < attr_array.length; i += 2) {
-        attr_table.put(attr_array[i], attr_array[i+1]);
+        attr_table.put(StringEscapeUtils.unescapeHtml4(attr_array[i]), StringEscapeUtils.unescapeHtml4(attr_array[i+1]));
       }
       return attr_table;
     }
@@ -142,7 +148,7 @@ public class EvernoteActivity extends Activity
         setPlainContent(note, "");
         old_content = "";
       }
-      String plain_content = getPlainContent(note);
+      String plain_content = StringEscapeUtils.escapeHtml4(getPlainContent(note));
       Map<String, String> attr_map = getAllAttributes(note);
       attr_map.put(key, value);
       StringBuffer attr_string_buf = new StringBuffer();
@@ -150,15 +156,15 @@ public class EvernoteActivity extends Activity
         if (attr_string_buf.length() > 0) {
           attr_string_buf.append(ATTR_SPLITTER);
         }
-        attr_string_buf.append(tmp_key);
+        attr_string_buf.append(StringEscapeUtils.escapeHtml4(tmp_key));
         attr_string_buf.append(ATTR_SPLITTER);
-        attr_string_buf.append(attr_map.get(tmp_key));
+        attr_string_buf.append(StringEscapeUtils.escapeHtml4(attr_map.get(tmp_key)));
       }
      
       note.setContent(
         NOTE_PREFIX
         + LINE_PREFIX
-        + plain_content.replaceAll("\n", LINE_SUFFIX + LINE_PREFIX)
+        + plain_content.replaceAll("\n$", "").replaceAll("\n", LINE_SUFFIX + LINE_PREFIX)
         + LINE_SUFFIX
         + (attr_string_buf.length() == 0 ? "" : ATTR_PREFIX + attr_string_buf.toString() + ATTR_SUFFIX)
         + NOTE_SUFFIX
