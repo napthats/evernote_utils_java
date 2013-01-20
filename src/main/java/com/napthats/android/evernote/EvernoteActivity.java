@@ -37,7 +37,7 @@ public class EvernoteActivity extends Activity
 
 
   /**
-   * Some utilities mailny related to notes with attributes.
+   * Some utilities.
    */
   public static class Util {
     private static final String NOTE_PREFIX =
@@ -47,9 +47,6 @@ public class EvernoteActivity extends Activity
     private static final String NOTE_SUFFIX = "</en-note>";
     private static final String LINE_PREFIX = "<div>";
     private static final String LINE_SUFFIX = "</div>";
-    private static final String ATTR_PREFIX = "<div>:</div><div>EvernoteActivity</div><div>";
-    private static final String ATTR_SUFFIX = "</div><div>:</div>";
-    private static final String ATTR_SPLITTER = "</div><div>";
 
 
     /**
@@ -65,7 +62,6 @@ public class EvernoteActivity extends Activity
       }
       return StringEscapeUtils.unescapeHtml4(
                note.getContent()
-                 .replaceAll(ATTR_PREFIX + ".*" + ATTR_SUFFIX, "")
                  .replaceAll(LINE_SUFFIX, "\n")
                  .replaceAll("<.*?>", ""));
     }
@@ -82,91 +78,11 @@ public class EvernoteActivity extends Activity
       if (note.getContent() == null) {
         note.setContent("");
       }
-      String note_attr = getAttributeString(note);
       note.setContent(
         NOTE_PREFIX
         + LINE_PREFIX
         + plain_content.replaceAll("\n", LINE_SUFFIX + LINE_PREFIX)
         + LINE_SUFFIX
-        + (note_attr == null ? "" : ATTR_PREFIX + note_attr + ATTR_SUFFIX)
-        + NOTE_SUFFIX
-      );
-    }
-
-    /**
-     * Get an attribute value with a key String.
-     * Return null if there is no attribute with the key.
-     *
-     * @param note a target note
-     * @param key an attribute key
-     * @return an attribute value
-     */
-    public static final String getAttribute(Note note, String key) {
-      if (note.getContent() == null) {
-        return null;
-      }
-      Map<String, String> attr_map = getAllAttributes(note);
-      if (attr_map.get(key) == null) {
-        return null;
-      }
-      return attr_map.get(key);
-    }
-
-    /**
-     * Get a attribute map.
-     *
-     * @param note a target note
-     * @return an attribute array
-     */
-    public static final Map<String, String> getAllAttributes(Note note) {
-      if (note.getContent() == null) {
-        return new Hashtable<String, String>();
-      }
-      String attr_string = getAttributeString(note);
-      Hashtable<String, String> attr_table = new Hashtable<String, String>();
-      if (attr_string == null) {
-        return attr_table;
-      }
-      String[] attr_array = attr_string.split(ATTR_SPLITTER, -1);
-      assert attr_array.length % 2 == 0;
-      for (int i = 0; i < attr_array.length; i += 2) {
-        attr_table.put(StringEscapeUtils.unescapeHtml4(attr_array[i]), StringEscapeUtils.unescapeHtml4(attr_array[i+1]));
-      }
-      return attr_table;
-    }
-
-    /**
-     * Set an attribute.
-     *
-     * @param note a target note
-     * @param key an attribute key
-     * @param value an attribute value
-     */
-    public static final void setAttribute(Note note, String key, String value) {
-      String old_content = note.getContent();
-      if (old_content == null) {
-        setPlainContent(note, "");
-        old_content = "";
-      }
-      String plain_content = StringEscapeUtils.escapeHtml4(getPlainContent(note));
-      Map<String, String> attr_map = getAllAttributes(note);
-      attr_map.put(key, value);
-      StringBuffer attr_string_buf = new StringBuffer();
-      for (String tmp_key : attr_map.keySet().toArray(new String[0])) {
-        if (attr_string_buf.length() > 0) {
-          attr_string_buf.append(ATTR_SPLITTER);
-        }
-        attr_string_buf.append(StringEscapeUtils.escapeHtml4(tmp_key));
-        attr_string_buf.append(ATTR_SPLITTER);
-        attr_string_buf.append(StringEscapeUtils.escapeHtml4(attr_map.get(tmp_key)));
-      }
-     
-      note.setContent(
-        NOTE_PREFIX
-        + LINE_PREFIX
-        + plain_content.replaceAll("\n$", "").replaceAll("\n", LINE_SUFFIX + LINE_PREFIX)
-        + LINE_SUFFIX
-        + (attr_string_buf.length() == 0 ? "" : ATTR_PREFIX + attr_string_buf.toString() + ATTR_SUFFIX)
         + NOTE_SUFFIX
       );
     }
@@ -230,14 +146,6 @@ public class EvernoteActivity extends Activity
       });
       return;
     }
- 
-    
-    private static final String getAttributeString(Note note) {
-      String content = note.getContent();
-      Pattern pattern = Pattern.compile(ATTR_PREFIX + "(.*)" + ATTR_SUFFIX);
-      Matcher matcher = pattern.matcher(content);
-      return matcher.find() ? matcher.group(1) : null;
-    } 
   }
 
  
