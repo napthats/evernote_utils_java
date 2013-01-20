@@ -37,7 +37,7 @@ public class EvernoteActivity extends Activity
 
 
   /**
-   * Some utilities related to notes with attributes.
+   * Some utilities mailny related to notes with attributes.
    */
   public static class Util {
     private static final String NOTE_PREFIX =
@@ -170,6 +170,67 @@ public class EvernoteActivity extends Activity
         + NOTE_SUFFIX
       );
     }
+
+    /**
+     * Get or create a tag with the given name.
+     * Create a tag only when there is no tag with the name.
+     *
+     * @param ea EvernoteActivity.
+     * @param name the tag name.
+     * @param callback callback dealing with the result tag.
+     */
+    public static void getOrCreateTagByName(final EvernoteActivity ea, final String name, final APICallBack<Tag> callback) throws TTransportException {
+      ea.createNoteStore().listTags(ea.getAuthToken(), new APICallBack<List<Tag>>() {
+        public void call(APIResult<List<Tag>> result) {
+          try {
+            Tag[] tag_array = (Tag[])result.get().toArray(new Tag[0]);
+            for (Tag tag : tag_array) {
+              if (tag.getName().equals(name)) {
+                //A tag with the given name is found.
+                final Tag finaled_tag = tag;
+                callback.call(new APIResult<Tag>() {
+                  public Tag get() {
+                    return finaled_tag;
+                  }
+                });
+                return;
+              }
+            }
+            Tag new_tag = new Tag();
+            new_tag.setName(name);
+            ea.createNoteStore().createTag(ea.getAuthToken(), new_tag, callback);
+          }
+          catch (final EDAMUserException ue) {
+            callback.call(new APIResult<Tag>() {
+              public Tag get() throws EDAMUserException {
+                throw ue;
+              }
+            });
+          }
+          catch (final EDAMSystemException se) {
+            callback.call(new APIResult<Tag>() {
+              public Tag get() throws EDAMSystemException {
+                throw se;
+              }
+            });
+          }
+          catch (final EDAMNotFoundException nfe) {
+            callback.call(new APIResult<Tag>() {
+              public Tag get() throws EDAMNotFoundException {
+                throw nfe;
+              }
+            });
+          }
+          catch (TTransportException te) {
+            //It means that network access was broken after the previous api call.
+            //It occurs rarely. (hopefully...)
+          }
+          return;
+        }
+      });
+      return;
+    }
+ 
     
     private static final String getAttributeString(Note note) {
       String content = note.getContent();
