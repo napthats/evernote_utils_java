@@ -39,7 +39,7 @@ public class EvernoteActivity extends Activity
   /**
    * Some utilities related to notes with attributes.
    */
-  protected static class Util {
+  public static class Util {
     private static final String NOTE_PREFIX =
       "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
           "<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">" +
@@ -191,15 +191,15 @@ public class EvernoteActivity extends Activity
    * @param temp_dir_name (optional) The data directory to store evernote files. Evernote sdk's
    * default setting is used for default. This cannot be provided if evernote_host is ommited.
    */
-  protected final void initEvernote(String c_key, String c_secret, String evernote_host, String temp_dir_name) {
+  public final void initEvernote(String c_key, String c_secret, String evernote_host, String temp_dir_name) {
     _initEvernote(c_key, c_secret, evernote_host, temp_dir_name);
   }
 
-  protected final void initEvernote(String c_key, String c_secret, String evernote_host) {
+  public final void initEvernote(String c_key, String c_secret, String evernote_host) {
     _initEvernote(c_key, c_secret, evernote_host, null);
   }
 
-  protected final void initEvernote(String c_key, String c_secret) {
+  public final void initEvernote(String c_key, String c_secret) {
     _initEvernote(c_key, c_secret, EVERNOTE_HOST, null);
   }
 
@@ -218,7 +218,7 @@ public class EvernoteActivity extends Activity
    * @param succeeded Callback after succeeding authentication.
    * @param failed Callback after failing authentication.
    */
-  protected final void authenticate(CallBack succeeded, CallBack failed) {
+  public final void authenticate(CallBack succeeded, CallBack failed) {
       checkInitialized();
       succeededCallbackAfterAuthentication = succeeded;
       failedCallbackAfterAuthentication = failed;
@@ -228,7 +228,7 @@ public class EvernoteActivity extends Activity
   private CallBack succeededCallbackAfterAuthentication = null;
   private CallBack failedCallbackAfterAuthentication = null;
 
-  protected interface CallBack {
+  public interface CallBack {
     public void call();
   }
 
@@ -255,7 +255,7 @@ public class EvernoteActivity extends Activity
    * It has same methods from the original NoteStore, which methods don't throw Exceptions.
    * Additionally, callback version methods is provided. They are executed in AsyncTask.
    */
-  protected final NoteStoreProxy createNoteStore() throws TTransportException {
+  public final NoteStoreProxy createNoteStore() throws TTransportException {
     checkInitialized();
     return (NoteStoreProxy) Proxy.newProxyInstance(
       NoteStoreProxy.class.getClassLoader(),
@@ -289,7 +289,7 @@ public class EvernoteActivity extends Activity
 
           new AsyncTask<Object, Void, APIResult<Object>>() {
             @Override
-            protected APIResult<Object> doInBackground(Object... api_args) {
+            public APIResult<Object> doInBackground(Object... api_args) {
               try {
                 final Object result = method.invoke(note_store, api_args);
                 return new APIResult<Object>() {
@@ -344,7 +344,7 @@ public class EvernoteActivity extends Activity
            }
             
             @Override
-            protected void onPostExecute(APIResult<Object> result) {
+            public void onPostExecute(APIResult<Object> result) {
               try {
                 Method method = callback.getClass().getMethod("call", APIResult.class);
                 method.invoke(callback, result);
@@ -523,12 +523,12 @@ public class EvernoteActivity extends Activity
   /**
    * Delegation methods.
    */
-  protected final String getAuthToken() {
+  public final String getAuthToken() {
     checkInitialized();
     return session.getAuthToken();
   }
 
-  protected final boolean isLoggedIn() {
+  public final boolean isLoggedIn() {
     checkInitialized();
     return session.isLoggedIn();
   }
